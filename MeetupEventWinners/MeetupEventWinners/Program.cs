@@ -22,6 +22,8 @@ namespace MeetupEventWinners
                 meetupEvent.GetCurrentEventDetails();
                 meetupEvent.GetParticipants();
                 meetupEvent.PresentEventWinners();
+
+                Console.WriteLine();
             }
             catch (Exception ex)
             {
