@@ -52,6 +52,7 @@
     <Compile Include="JsonModels\EventDetails.cs" />
     <Compile Include="JsonModels\EventResultDetails.cs" />
     <Compile Include="JsonModels\GroupDetail.cs" />
+    <Compile Include="JsonModels\ParticipantResultDetails.cs" />
     <Compile Include="Model\MeetupEvent.cs" />
     <Compile Include="Model\MeetupSettings.cs" />
     <Compile Include="JsonModels\Member.cs" />

@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using RestSharp;
 
 namespace MeetupEventWinners.JsonModels
 {
-    public class EventResultDetails
+    public class ParticipantResultDetails
     {
         [JsonProperty("results")]
-        public EventDetails[] Events { get; set; }
+        public Participant[] Participants { get; set; }
     }
 }

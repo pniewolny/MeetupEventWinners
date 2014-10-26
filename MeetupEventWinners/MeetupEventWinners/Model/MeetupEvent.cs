@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using MeetupEventWinners.JsonModels;
@@ -71,22 +72,23 @@ namespace MeetupEventWinners.Model
             var response = client.Execute(request);
             var content = response.Content;
 
-            var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
-            var jsonResultsContent = jsonValues["results"].ToString();
+            var eventResultDetails = JsonConvert.DeserializeObject<EventResultDetails>(content);
 
-            var events = JsonConvert.DeserializeObject<List<EventDetails>>(jsonResultsContent);
-            if (events.Any() == false)
+            Contract.Assert(eventResultDetails != null);
+            Contract.Assert(eventResultDetails.Events != null);
+
+            if (eventResultDetails.Events.Any() == false)
             {
                 Console.WriteLine("No events found!");
                 return;
             }
-            if (events.Count > 1)
+            if (eventResultDetails.Events.Count() > 1)
             {
                 Console.WriteLine("More than one event found!");
                 return;
             }
 
-            Settings.MeetupEventDetails = events[0];
+            Settings.MeetupEventDetails = eventResultDetails.Events[0];
 
             Console.WriteLine();
             Console.WriteLine("Event name: '" + Settings.MeetupEventDetails.EventName + "'");
@@ -114,10 +116,12 @@ namespace MeetupEventWinners.Model
             var response = client.Execute(request);
             var content = response.Content;
 
-            var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
-            var jsonResultsContent = jsonValues["results"].ToString();
+            var participantResultDetails = JsonConvert.DeserializeObject<ParticipantResultDetails>(content);
 
-            Settings.Participants = JsonConvert.DeserializeObject<List<Participant>>(jsonResultsContent);
+            Contract.Assert(participantResultDetails != null);
+            Contract.Assert(participantResultDetails.Participants != null);
+
+            Settings.Participants = participantResultDetails.Participants.ToList();
         }
 
         public void PresentEventWinners()
