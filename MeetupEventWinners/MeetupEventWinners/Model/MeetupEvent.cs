@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using MeetupEventWinners.JsonModels;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -33,8 +34,23 @@ namespace MeetupEventWinners.Model
             var response = client.Execute(request);
             var content = response.Content;
 
-            var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(content.Substring(1, content.Length - 2));
-            Settings.GroupId = jsonValues["id"].ToString();
+            var groups = JsonConvert.DeserializeObject<List<GroupDetail>>(content);
+
+            if (groups.Any() == false)
+            {
+                Console.WriteLine("No groups found!");
+                return;
+            }
+            if (groups.Count > 1)
+            {
+                Console.WriteLine("More than one group found with name: '" + Settings.GroupName + "'");
+                return;
+            }
+
+            Settings.GroupId = groups[0].GroupId;
+
+            Contract.Assert(groups.Any(), "No groups found!");
+            Contract.Assert(string.IsNullOrEmpty(Settings.MeetupApiKey) == false, "API Key is required!");
         }
 
         public void GetCurrentEventDetails()
@@ -58,31 +74,30 @@ namespace MeetupEventWinners.Model
             var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
             var jsonResultsContent = jsonValues["results"].ToString();
 
-            var eventObject = new
+            var events = JsonConvert.DeserializeObject<List<EventDetails>>(jsonResultsContent);
+            if (events.Any() == false)
             {
-                id = string.Empty,
-                rsvp_limit = 0,
-                name = string.Empty
-            };
+                Console.WriteLine("No events found!");
+                return;
+            }
+            if (events.Count > 1)
+            {
+                Console.WriteLine("More than one event found!");
+                return;
+            }
 
-            var deserializedDetails = JsonConvert.DeserializeAnonymousType(jsonResultsContent.Substring(1, jsonResultsContent.Length - 2), eventObject);
-            Settings.EventDetails = new EventDetails
-            {
-                EventId = deserializedDetails.id,
-                EventName = deserializedDetails.name,
-                MaxRvspNo = deserializedDetails.rsvp_limit
-            };
+            Settings.MeetupEventDetails = events[0];
 
             Console.WriteLine();
-            Console.WriteLine("Event name: '" + Settings.EventDetails.EventName + "'");
-            Console.WriteLine("Participants with 'yes' RVSP: '" + Settings.EventDetails.MaxRvspNo + "'");
+            Console.WriteLine("Event name: '" + Settings.MeetupEventDetails.EventName + "'");
+            Console.WriteLine("Participants with 'yes' RVSP: '" + Settings.MeetupEventDetails.RvspLimit + "'");
             Console.WriteLine();
         }
 
         public void GetParticipants()
         {
             Contract.Assert(string.IsNullOrEmpty(Settings.MeetupApiKey) == false, "API Key is required!");
-            Contract.Assert(Settings.EventDetails != null, "Event details are unknown!");
+            Contract.Assert(Settings.MeetupEventDetails != null, "Event details are unknown!");
 
             Console.WriteLine("Reading participants...");
 
@@ -92,44 +107,17 @@ namespace MeetupEventWinners.Model
             request.RequestFormat = DataFormat.Json;
 
             request.AddParameter("key", Settings.MeetupApiKey);
-            request.AddParameter("event_id", Settings.EventDetails.EventId);
+            request.AddParameter("event_id", Settings.MeetupEventDetails.EventId);
             request.AddParameter("rsvp", "yes");
-            request.AddParameter("page", Settings.EventDetails.MaxRvspNo);
+            request.AddParameter("page", Settings.MeetupEventDetails.RvspLimit);
 
             var response = client.Execute(request);
             var content = response.Content;
 
             var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
             var jsonResultsContent = jsonValues["results"].ToString();
-            var fixedJsonResultsContent = jsonResultsContent.Substring(1, jsonResultsContent.Length - 2);
 
-            var splitedContents = fixedJsonResultsContent.Split(new[] { "},\r\n  {" }, StringSplitOptions.RemoveEmptyEntries);
-
-            var idx = 0;
-            var participants = new List<Participant>();
-            foreach (var line in splitedContents)
-            {
-                string completeLine;
-                if (idx == 0)
-                {
-                    completeLine = line + "}";
-                }
-                else if (idx == Settings.EventDetails.MaxRvspNo - 1)
-                {
-                    completeLine = "{" + line;
-                }
-                else
-                {
-                    completeLine = "{" + line + "}";
-                }
-
-                var user = JsonConvert.DeserializeObject<Participant>(completeLine);
-                participants.Add(user);
-
-                idx++;
-            }
-
-            Settings.Participants = participants;
+            Settings.Participants = JsonConvert.DeserializeObject<List<Participant>>(jsonResultsContent);
         }
 
         public void PresentEventWinners()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MeetupEventWinners.JsonModels;
 
 namespace MeetupEventWinners.Model
 {
@@ -29,7 +30,7 @@ namespace MeetupEventWinners.Model
         /// </summary>
         public DateTime? TimeOfEvent { get; set; }
 
-        public EventDetails EventDetails { get; set; }
+        public EventDetails MeetupEventDetails { get; set; }
 
         public List<Participant> Participants { get; set; }
 

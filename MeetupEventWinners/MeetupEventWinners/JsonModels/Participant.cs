@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace MeetupEventWinners.Model
+namespace MeetupEventWinners.JsonModels
 {
     public class Participant
     {
