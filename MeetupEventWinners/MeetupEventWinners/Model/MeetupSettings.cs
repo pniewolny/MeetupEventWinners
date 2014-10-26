@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MeetupEventWinners.Model
 {
@@ -21,11 +22,16 @@ namespace MeetupEventWinners.Model
         /// </summary>
         public string GroupName { get; set; }
 
+        public string GroupId { get; internal set; }
+
         /// <summary>
         /// Date when event take place (optional)
         /// </summary>
         public DateTime? TimeOfEvent { get; set; }
 
+        public EventDetails EventDetails { get; set; }
+
+        public List<Participant> Participants { get; set; }
 
         public string ApiUri
         {
